@@ -1,21 +1,21 @@
 FROM node:18-slim
 
-# تثبيت الحزم الأساسية
+# تثبيت الحزم الأساسية لنظام التشغيل
 RUN apt-get update && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# نسخ ملفات الحزم أولاً
+# نسخ ملفات الاعتماديات
 COPY package*.json ./
 
-# تثبيت الاعتماديات
+# تثبيت الحزم
 RUN npm install
 
-# نسخ بقية الملفات
+# نسخ باقي ملفات المشروع
 COPY . .
 
-# توليد عميل Prisma بتحديد المسار الصريح
+# توليد عميل Prisma بالمسار الصحيح
 RUN npx prisma generate --schema=prisma/schema.prisma
 
-# تشغيل البوت
-CMD ["npm", "start"]
+# مزامنة قاعدة البيانات ثم تشغيل البوت مباشرة
+CMD npx prisma db push --schema=prisma/schema.prisma && npm start
