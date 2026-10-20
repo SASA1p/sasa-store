@@ -7,14 +7,5 @@ primary_region = "fra"
 [deploy]
   release_command = ""
 
-[[services]]
-  protocol = "tcp"
-  internal_port = 3000
-
-  [[services.ports]]
-    handlers = ["http"]
-    port = 80
-
-  [[services.ports]]
-    handlers = ["tls", "http"]
-    port = 443
+[[vm]]
+  size = "shared-cpu-1x"
