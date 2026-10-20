@@ -1,0 +1,96 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id               String            @id
+  username         String
+  discriminator    String
+  avatar           String?
+  creditsBalance   BigInt            @default(0)
+  trustScore       Int               @default(50)
+  isVerifiedKYC    Boolean           @default(false)
+  isPremium        Boolean           @default(false)
+  premiumExpiresAt DateTime?
+  hwidHash         String?
+  lastKnownIp      String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  transactions     Transaction[]
+  warranties       WarrantyReceipt[]
+  kycRecord        KYCRecord?
+  tickets          Ticket[]
+}
+
+model CommandAlias {
+  id           String   @id @default(uuid())
+  originalName String
+  aliasName    String   @unique
+  isEnabled    Boolean  @default(true)
+  createdAt    DateTime @default(now())
+}
+
+model Transaction {
+  id              String            @id @default(uuid())
+  userId          String
+  user            User              @relation(fields: [userId], references: [id])
+  amount          BigInt
+  taxAmount       BigInt
+  netAmount       BigInt
+  recipientId     String            @default("860295635093946399")
+  probotMessageId String?
+  status          TransactionStatus @default(COMPLETED)
+  createdAt       DateTime          @default(now())
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  FLAGGED
+}
+
+model WarrantyReceipt {
+  id             String   @id @default(uuid())
+  signature      String   @unique
+  userId         String
+  user           User     @relation(fields: [userId], references: [id])
+  productId      String
+  productName    String
+  itemPayload    String
+  purchaseAmount BigInt
+  issuedAt       DateTime @default(now())
+}
+
+model KYCRecord {
+  id             String    @id @default(uuid())
+  userId         String    @unique
+  user           User      @relation(fields: [userId], references: [id])
+  idDocumentHash String
+  faceMatchScore Float
+  isPassed       Boolean   @default(false)
+  verifiedAt     DateTime?
+  ipAddress      String
+}
+
+model Ticket {
+  id        String       @id @default(uuid())
+  channelId String       @unique
+  userId    String
+  user      User         @relation(fields: [userId], references: [id])
+  status    TicketStatus @default(OPEN)
+  aiSummary String?
+  createdAt DateTime     @default(now())
+  closedAt  DateTime?
+}
+
+enum TicketStatus {
+  OPEN
+  CLOSED
+  AUCTION_ACTIVE
+}
